@@ -1,3 +1,12 @@
+// Render будет показывать полную ошибку в логах, а не просто завершать процесс.
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT ERROR:', err);
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('UNHANDLED REJECTION:', err);
+});
+
 
 const { WebSocketServer } = require('ws');
 const sqlite3 = require('sqlite3');
@@ -187,26 +196,26 @@ wss.on('connection', (ws, req) => {
               type: 'error',
               message: 'Ошибка БД'
             }));
+            return;
           }
-          const friendId = clientsId.get(row.id);
-          if(row && row.name === nameAdd){
+          const friendSocket = clientsId.get(row.id);
+          if(!friendSocket){
             ws.send(JSON.stringify({
               type: 'name_friend_result',
-              success: true,
-              message: `Запрос в друзья пользователю ${nameAdd} отправлен` 
+              success: false,
+              message: 'Пользователь сейчас не в сети'
             }));
-            friendId.send(JSON.stringify({
-              type: 'friend_request',
-              message: `Запрос в друзья от `//${send_invite_name}
-            }));
-          
-        } else {
-              ws.send(JSON.stringify({
-                type: 'name_friend_result',
-                success: false,
-                message: `Запрос в друзья пользователю ${nameAdd} не отправлен` 
-              }));
-            }
+            return;
+          }
+          ws.send(JSON.stringify({
+            type: 'name_friend_result',
+            success: true,
+            message: `Запрос в друзья пользователю ${nameAdd} отправлен`
+          }));
+          friendSocket.send(JSON.stringify({
+            type: 'friend_request',
+            message: `Запрос в друзья от ${send_invite_name}`
+          }));
         });
       }
     
