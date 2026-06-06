@@ -167,7 +167,7 @@ wss.on('connection', (ws, req) => {
 
         if(!nameregistr || !passwordregistr) return;
         
-        db.run(`INSERT INTO registration (name, password) VALUES (?, ?)`, [nameregistr, passwordregistr], (err, row) => {
+        db.run(`INSERT INTO registration (name, password) VALUES (?, ?)`, [nameregistr, passwordregistr], (err) => {
             if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
@@ -175,12 +175,14 @@ wss.on('connection', (ws, req) => {
               }));
               return;
             }
-            clientsId.set(row.id, ws);
         });
         ws.send(JSON.stringify({
           type: 'register_result',
           message: 'Регистрация прошла успешно'
         }));
+        db.get(`SELECT id, name FROM registration WHERE name = ?`, [nameregistr], (err, row) => {
+          clientsId.set(row.id, ws);
+        });
       }
       //////////// добавление в друзья
       if(data.type === 'name_friend'){
