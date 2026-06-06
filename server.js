@@ -167,8 +167,7 @@ wss.on('connection', (ws, req) => {
 
         if(!nameregistr || !passwordregistr) return;
         
-        db.run(`INSERT INTO registration (name, password) VALUES (?, ?)`, [nameregistr, passwordregistr],
-          function (err) {
+        db.run(`INSERT INTO registration (name, password) VALUES (?, ?)`, [nameregistr, passwordregistr], (err, row) => {
             if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
@@ -176,8 +175,8 @@ wss.on('connection', (ws, req) => {
               }));
               return;
             }
-          }
-        );
+            clientsId.set(row.id, ws);
+        });
         ws.send(JSON.stringify({
           type: 'register_result',
           message: 'Регистрация прошла успешно'
