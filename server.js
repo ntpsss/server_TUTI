@@ -220,7 +220,7 @@ wss.on('connection', (ws, req) => {
           }));
 
       if(data.type === 'friend_accept'){
-        const nameGet = String(data.send_invite_name || '').trim();
+        const nameGet = String(data.currentUserName || '').trim();
         let get_invite_name = data.currentUserName;
         db.get(`SELECT id, name FROM registration WHERE name = ?`, [nameGet], (err, row) => {
           if(err){
