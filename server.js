@@ -224,6 +224,7 @@ wss.on('connection', (ws, req) => {
       if(data.type === 'friend_accept'){
         
         const sender = String(data.sender || '').trim();
+        const namefriend = String(data.currentUserName || '').trim();
         let get_invite_name = data.currentUserName;
         db.get(`SELECT id, name FROM registration WHERE name = ?`, [sender], (err, row) => {
           if(err){
@@ -243,6 +244,16 @@ wss.on('connection', (ws, req) => {
           }));
         });
         
+          const namehisfriend
+          db.run(`INSERT INTO friend (name, friend_name) VALUES (?, ?)`, [sender, namefriend], (err) => {
+            if (err) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Ошибка записи в БД'
+              }));
+              return;
+            }
+        });
       }
        
     } catch (error) {
