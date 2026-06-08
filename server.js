@@ -221,6 +221,7 @@ wss.on('connection', (ws, req) => {
 
       if(data.type === 'friend_accept'){
         const nameGet = String(data.send_invite_name || '').trim();
+        const get_invite_name = data.currentUserName;
         db.get(`SELECT id, name FROM registration WHERE name = ?`, [nameGet], (err, row) => {
           if(err){
             ws.send(JSON.stringify({
@@ -233,7 +234,7 @@ wss.on('connection', (ws, req) => {
           friendSocket2.send(JSON.stringify({
             type: 'friend_accept',
             accept: true,
-            nameGet
+            get_invite_name
           }));
         });
         
