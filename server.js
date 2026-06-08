@@ -236,7 +236,7 @@ wss.on('connection', (ws, req) => {
             nameGet
           }));
         });
-        db.run
+        
       }
         });
       }
