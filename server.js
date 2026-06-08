@@ -215,7 +215,8 @@ wss.on('connection', (ws, req) => {
           }));
           friendSocket.send(JSON.stringify({
             type: 'friend_request',
-            message: `Запрос в друзья от ${send_invite_name}`
+            message: `Запрос в друзья от ${send_invite_name}`,
+            send_invite_name
           }));
         });
       }
