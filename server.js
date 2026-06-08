@@ -218,9 +218,28 @@ wss.on('connection', (ws, req) => {
             message: `Запрос в друзья от ${send_invite_name}`,
             send_invite_name
           }));
+
+      if(data.type === 'friend_accept'){
+        const nameGet = String(data.send_invite_name || '').trim();
+        db.get(`SELECT id, name FROM registration WHERE name = ?`, [nameGet], (err, row) => {
+          if(err){
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Ошибка БД'
+            }));
+            return;
+          }
+          const friendSocket2 = clientsId.get(row.id);
+          friendSocket2.send(JSON.stringify({
+            type: 'friend_accept',
+            accept: true,
+            nameGet
+          }));
+        });
+        db.run
+      }
         });
       }
-    
     } catch (error) {
         ws.send(JSON.stringify({
           type: 'error',
