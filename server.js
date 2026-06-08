@@ -216,13 +216,17 @@ wss.on('connection', (ws, req) => {
           friendSocket.send(JSON.stringify({
             type: 'friend_request',
             message: `Запрос в друзья от ${send_invite_name}`,
-            send_invite_name
+            send_invite_name,
+            sender: send_invite_name
           }));
-
+        });
+      }
+///////////// получение имени для добавления в друзья
       if(data.type === 'friend_accept'){
-        const nameGet = String(data.currentUserName || '').trim();
+        
+        const sender = String(data.sender || '').trim();
         let get_invite_name = data.currentUserName;
-        db.get(`SELECT id, name FROM registration WHERE name = ?`, [nameGet], (err, row) => {
+        db.get(`SELECT id, name FROM registration WHERE name = ?`, [sender], (err, row) => {
           if(err){
             ws.send(JSON.stringify({
               type: 'error',
@@ -230,23 +234,25 @@ wss.on('connection', (ws, req) => {
             }));
             return;
           }
+          
           const friendSocket2 = clientsId.get(row.id);
           friendSocket2.send(JSON.stringify({
-            type: 'friend_accept_true',
-            message: `${get_invite_name}`
+            type: 'friend_accept',
+            accept: true,
+            message: `${get_invite_name}`,
+            get_invite_name
           }));
         });
         
       }
-        });
-      }
+       
     } catch (error) {
         ws.send(JSON.stringify({
           type: 'error',
           message: 'Некорректный JSON'
         }));
       }
-///////////// получение имени для добавления в друзья
+
     
   });
 
