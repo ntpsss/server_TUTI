@@ -10,13 +10,9 @@ process.on('unhandledRejection', (err) => {
 
 const { WebSocketServer } = require('ws');
 const sqlite3 = require('sqlite3');
-const express = require('express');
-const app = express();
 const host = '0.0.0.0';
 const port = process.env.PORT || 3000;
-app.get('/download-db', (req, res) => {
-  res.download('appDatabase.db');
-});
+
 const db = new sqlite3.Database('appDatabase.db', (err) => {
   if (err) {
     console.error('Ошибка подключения DB:', err.message);
