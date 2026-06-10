@@ -243,9 +243,8 @@ wss.on('connection', (ws, req) => {
             get_invite_name
           }));
         });
-        
-          const namehisfriend
-          db.run(`INSERT INTO friend (name, friend_name) VALUES (?, ?)`, [sender, namefriend], (err) => {
+
+          db.run(`INSERT INTO friends (name, friend_name) VALUES (?, ?)`, [sender, namefriend], (err) => {
             if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
@@ -255,7 +254,14 @@ wss.on('connection', (ws, req) => {
             }
         });
       }
-       
+      db.all(`SELECT * FROM friends`, [], (err, rows) => {
+  if(err){
+    console.error(err);
+    return;
+  }
+
+  console.log('USERS:', rows);
+});
     } catch (error) {
         ws.send(JSON.stringify({
           type: 'error',
