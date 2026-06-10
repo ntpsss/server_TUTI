@@ -48,15 +48,6 @@ db.serialize(() => {
     
   )
 });
-db.all(`SELECT * FROM friends`, [], (err, rows) => {
-  if (err) {
-    console.error('Ошибка чтения friends:', err);
-    return;
-  }
-
-  console.log('FRIENDS TABLE:');
-  console.table(rows);
-});
 
 const wss = new WebSocketServer({ host, port });
 const clients = new Set();
@@ -263,6 +254,15 @@ wss.on('connection', (ws, req) => {
             }
         });
       }
+      db.all(`SELECT * FROM friends`, [], (err, rows) => {
+  if (err) {
+    console.error('Ошибка чтения friends:', err);
+    return;
+  }
+
+  console.log('FRIENDS TABLE:');
+  console.table(rows);
+});
     } catch (error) {
         ws.send(JSON.stringify({
           type: 'error',
