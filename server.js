@@ -29,15 +29,6 @@ db.serialize(() => {
       password TEXT NOT NULL
     )
   `);
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS messages (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      author TEXT NOT NULL,
-      text TEXT NOT NULL,
-      created_at TEXT NOT NULL
-    )
-  `);
   db.run(`
     CREATE TABLE IF NOT EXISTS friends (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,7 +90,7 @@ wss.on('connection', (ws, req) => {
         if (!author || !text) return;
 
         const createdAt = new Date().toISOString();
-        db.run(`INSERT INTO friends text VALUES ?`, [text], (err) => {
+        db.run(`INSERT INTO friends (text) VALUES (?)`, [text], (err) => {
           if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
