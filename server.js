@@ -88,10 +88,21 @@ wss.on('connection', (ws, req) => {
               }));
               return;
             }
-            ws.send(JSON.stringify({
+            db.get(`SELECT id FROM registration WHERE name = ?`, [receiver], (err, row) => {
+              if (err) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Ошибка БД'
+              }));
+              return;
+              }
+              const friendSocket = clientsId.get(row.id);
+              friendSocket.send(JSON.stringify({
               type: 'friend_message',
               text: rows
             }));
+            });
+            
           });
       }
 ///////////// получение данных логина
