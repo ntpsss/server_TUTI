@@ -39,10 +39,12 @@ db.serialize(() => {
     )
   `);
   db.run(`
-     CREATE TABLE IF NOT EXISTS friends (
+    CREATE TABLE IF NOT EXISTS friends (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      friend_name TEXT NOT NULL
+      friend_name TEXT NOT NULL,
+      text TEXT NOT NULL
+      created_at TEXT NOT NULL
      )
     `
     
@@ -80,47 +82,62 @@ wss.on('connection', (ws, req) => {
       return;
     }
 
-    ws.send(JSON.stringify({
+    /*ws.send(JSON.stringify({
       type: 'history',
       message: rows
-    }));
+    }));*/
   });
 
   ws.on('message', (raw) => {
     try {
       const data = JSON.parse(raw.toString());
 
-      if (data.type === 'message') {
+      if (data.type === 'friend_message') {
         const author = String(data.author || '').trim();
         const text = String(data.text || '').trim();
 
         if (!author || !text) return;
 
         const createdAt = new Date().toISOString();
-
-        db.run(
-          `INSERT INTO messages (author, text, created_at) VALUES (?, ?, ?)`,
-          [author, text, createdAt],
-          function (err) {
-            if (err) {
+        db.run(`INSERT INTO friends text VALUES ?`, [text], (err) => {
+          if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
                 message: 'Ошибка записи в БД'
               }));
               return;
             }
-
+          
+        });
+        db.get(`SELECT friend_name FROM friends WHERE name = ?`, [author], (err, row) =>{
+          const friend = row.friend_name;
+        
+          db.all(`SELECT text FROM friends WHERE name = ? AND friend_name = ?`, [author, friend], (err, rows) => {
+            if (err) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Ошибка БД'
+              }));
+              return;
+            }
+            ws.send(JSON.stringify({
+              type: 'friend_message',
+              text: rows
+            }));
+          });
+        });
             broadcast({
               type: 'message',
               message: {
-                id: this.lastID,
-                author,
-                text,
-                created_at: createdAt
+              id: this.lastID,
+              author,
+              text,
+              created_at: createdAt
               }
             });
-          }
-        );
+        
+          
+        
       }
 ///////////// получение данных логина
       if(data.type === 'login'){
@@ -248,24 +265,17 @@ wss.on('connection', (ws, req) => {
           db.run(`INSERT INTO friends (name, friend_name) VALUES (?, ?)`,
           [namefriend, sender]);
       }
-      db.all(`SELECT * FROM friends`, [], (err, rows) => {
-        if (err) {
-          console.error('Ошибка чтения friends:', err);
-          return;
-        }
-  console.log('FRIENDS TABLE:');
-  console.table(rows);
-});
+      
       if (data.type === 'friends') {
         const name = String(data.name || '').trim();
 
         db.all(`SELECT friend_name FROM friends WHERE name = ?`, [name], (err, rows) => {
           if (err) {
-        ws.send(JSON.stringify({
-          type: 'error',
-          message: 'Ошибка БД'
-        }));
-        return;
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Ошибка БД'
+            }));
+            return;
           }
 
           ws.send(JSON.stringify({
@@ -274,7 +284,10 @@ wss.on('connection', (ws, req) => {
           }));
         });
       }
-
+      if(data.type === 'friend_history'){
+        const name = String(data.name || '').trim();
+        
+      }
     } catch (error) {
         ws.send(JSON.stringify({
           type: 'error',
