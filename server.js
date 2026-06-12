@@ -222,7 +222,6 @@ wss.on('connection', (ws, req) => {
       }
 ///////////// получение имени для добавления в друзья
       if(data.type === 'friend_accept'){
-        
         const sender = String(data.sender || '').trim();
         const namefriend = String(data.currentUserName || '').trim();
         let get_invite_name = data.currentUserName;
@@ -234,7 +233,6 @@ wss.on('connection', (ws, req) => {
             }));
             return;
           }
-          
           const friendSocket2 = clientsId.get(row.id);
           friendSocket2.send(JSON.stringify({
             type: 'friend_accept',
@@ -255,22 +253,62 @@ wss.on('connection', (ws, req) => {
         });
       }
       db.all(`SELECT * FROM friends`, [], (err, rows) => {
-  if (err) {
-    console.error('Ошибка чтения friends:', err);
-    return;
-  }
-
+        if (err) {
+          console.error('Ошибка чтения friends:', err);
+          return;
+        }
   console.log('FRIENDS TABLE:');
   console.table(rows);
 });
+      if(data.type === 'friends'){
+        const name = String(data.name || '').trim();
+        db.get(`SELECT id, name, friend_name FROM friends WHERE name = ?`, [name], (err, row) => {
+          if(err){
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Ошибка БД'
+            }));
+            return;
+          }
+          const namefriend = row.friend_name;
+          db.get(`SELECT id, name FROM registration WHERE name = ?`, [namefriend], (err, row) => {
+            if(err){
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Ошибка БД'
+            }));
+            return;
+          }
+          const friendSocket = clientsId.get(row.id);
+          friendSocket.send({
+            type: 'friend_list',
+            name
+          });
+          });
+          db.get(`SELECT id, name FROM registration WHERE name = ?`, [name], (err, row) => {
+            if(err){
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Ошибка БД'
+            }));
+            return;
+          }
+          const friendSocket2 = clientsId.get(row.id);
+          friendSocket2.send(JSON.stringify({
+            type: 'friend_list',
+            namefriend
+          }));
+          });
+        });
+        
+      }
+
     } catch (error) {
         ws.send(JSON.stringify({
           type: 'error',
           message: 'Некорректный JSON'
         }));
       }
-
-    
   });
 
   ws.on('close', () => {
