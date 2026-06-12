@@ -242,15 +242,11 @@ wss.on('connection', (ws, req) => {
           }));
         });
 
-          db.run(`INSERT INTO friends (name, friend_name) VALUES (?, ?)`, [sender, namefriend], (err) => {
-            if (err) {
-              ws.send(JSON.stringify({
-                type: 'error',
-                message: 'Ошибка записи в БД'
-              }));
-              return;
-            }
-        });
+          db.run(`INSERT INTO friends (name, friend_name) VALUES (?, ?)`,
+          [sender, namefriend]);
+
+          db.run(`INSERT INTO friends (name, friend_name) VALUES (?, ?)`,
+          [namefriend, sender]);
       }
       db.all(`SELECT * FROM friends`, [], (err, rows) => {
         if (err) {
@@ -260,47 +256,23 @@ wss.on('connection', (ws, req) => {
   console.log('FRIENDS TABLE:');
   console.table(rows);
 });
-      if(data.type === 'friends'){
+      if (data.type === 'friends') {
         const name = String(data.name || '').trim();
-        db.get(`SELECT id, name, friend_name FROM friends WHERE name = ?`, [name], (err, row) => {
-          if(err){
-            ws.send(JSON.stringify({
-              type: 'error',
-              message: 'Ошибка БД'
-            }));
-            return;
+
+        db.all(`SELECT friend_name FROM friends WHERE name = ?`, [name], (err, rows) => {
+          if (err) {
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Ошибка БД'
+        }));
+        return;
           }
-          const namefriend = row.friend_name;
-          db.get(`SELECT id, name FROM registration WHERE name = ?`, [namefriend], (err, row) => {
-            if(err){
-            ws.send(JSON.stringify({
-              type: 'error',
-              message: 'Ошибка БД'
-            }));
-            return;
-          }
-          const friendSocket = clientsId.get(row.id);
-          friendSocket.send({
+
+          ws.send(JSON.stringify({
             type: 'friend_list',
-            name
-          });
-          });
-          db.get(`SELECT id, name FROM registration WHERE name = ?`, [name], (err, row) => {
-            if(err){
-            ws.send(JSON.stringify({
-              type: 'error',
-              message: 'Ошибка БД'
-            }));
-            return;
-          }
-          const friendSocket2 = clientsId.get(row.id);
-          friendSocket2.send(JSON.stringify({
-            type: 'friend_list',
-            namefriend
+            friends: rows
           }));
-          });
         });
-        
       }
 
     } catch (error) {
