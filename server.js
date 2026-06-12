@@ -98,9 +98,9 @@ wss.on('connection', (ws, req) => {
               }
               const friendSocket = clientsId.get(row.id);
               friendSocket.send(JSON.stringify({
-              type: 'friend_message',
-              text: rows
-            }));
+                type: 'friend_message_history',
+                messages: rows
+              }));
             });
             
           });
