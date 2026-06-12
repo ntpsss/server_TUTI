@@ -34,7 +34,7 @@ db.serialize(() => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       friend_name TEXT NOT NULL,
-      text TEXT NOT NULL
+      text TEXT NOT NULL,
       created_at TEXT NOT NULL
      )
     `
