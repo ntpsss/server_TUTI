@@ -33,12 +33,19 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS friends (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      friend_name TEXT NOT NULL,
-      text TEXT NOT NULL
-     )
-    `
-    
-  )
+      friend_name TEXT NOT NULL
+     ); 
+    `)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS private_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender TEXT NOT NULL,
+    receiver TEXT NOT NULL,
+    text TEXT NOT NULL,
+    created_at TEXT NOT NULL
+    );
+  `)
+  
 });
 
 const wss = new WebSocketServer({ host, port });
@@ -83,26 +90,20 @@ wss.on('connection', (ws, req) => {
       const data = JSON.parse(raw.toString());
 
       if (data.type === 'friend_message') {
-        const author = String(data.author || '').trim();
+        const sender = String(data.sender || '').trim();
+        const receiver = String(data.receiver || '').trim();
         const text = String(data.text || '').trim();
 
-        if (!author || !text) return;
+        if (!sender || !text) return;
 
         const createdAt = new Date().toISOString();
-        db.run(`INSERT INTO friends (text) VALUES (?)`, [text], (err) => {
+
+        db.run(`INSERT INTO private_messages (sender, receiver, text, created_at) VALUES (?, ?, ?, ?)`, [sender, receiver, text, createdAt], (err) => {
           if (err) {
-              ws.send(JSON.stringify({
-                type: 'error',
-                message: 'Ошибка записи в БД'
-              }));
-              return;
-            }
-          
+            console.error(err);
+          }
         });
-        db.get(`SELECT friend_name FROM friends WHERE name = ?`, [author], (err, row) =>{
-          const friend = row.friend_name;
-        
-          db.all(`SELECT text FROM friends WHERE name = ? AND friend_name = ?`, [author, friend], (err, rows) => {
+        db.all(`SELECT text FROM private_messages WHERE name = ? AND friend_name = ?`, [sender, receiver], (err, rows) => {
             if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
@@ -115,7 +116,7 @@ wss.on('connection', (ws, req) => {
               text: rows
             }));
           });
-        });
+
             broadcast({
               type: 'message',
               message: {
