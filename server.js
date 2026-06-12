@@ -34,8 +34,7 @@ db.serialize(() => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       friend_name TEXT NOT NULL,
-      text TEXT NOT NULL,
-      created_at TEXT NOT NULL
+      text TEXT NOT NULL
      )
     `
     
@@ -90,7 +89,7 @@ wss.on('connection', (ws, req) => {
         if (!author || !text) return;
 
         const createdAt = new Date().toISOString();
-        db.run(`INSERT INTO friends (text, created_at) VALUES (?, ?)`, [text, createdAt], (err) => {
+        db.run(`INSERT INTO friends (text) VALUES (?)`, [text], (err) => {
           if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
