@@ -90,7 +90,7 @@ wss.on('connection', (ws, req) => {
         if (!author || !text) return;
 
         const createdAt = new Date().toISOString();
-        db.run(`INSERT INTO friends (text) VALUES (?)`, [text], (err) => {
+        db.run(`INSERT INTO friends (text, createdAt) VALUES (?)`, [text, createdAt], (err) => {
           if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
