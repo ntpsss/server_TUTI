@@ -51,14 +51,6 @@ db.serialize(() => {
 const wss = new WebSocketServer({ host, port });
 const clients = new Set();
 const clientsId = new Map(); 
-function broadcast(data) {
-  const payload = JSON.stringify(data);
-  for (const client of clients) {
-    if (client.readyState === 1) {
-      client.send(payload);
-    }
-  }
-}
 
 wss.on('listening', () => {
   console.log(`WebSocket создан: ws://${host}:${port}`);
@@ -69,21 +61,6 @@ wss.on('connection', (ws, req) => {
 
   const clientIp = req.socket.remoteAddress?.replace('::ffff:', '') || 'unknown';
   console.log(`Клиент подключился: ${clientIp}`);
-
-  db.all(`SELECT id, author, text, created_at FROM messages ORDER BY id ASC`, [], (err, rows) => {
-    if (err) {
-      ws.send(JSON.stringify({
-        type: 'error',
-        message: 'Ошибка чтения истории из БД'
-      }));
-      return;
-    }
-
-    /*ws.send(JSON.stringify({
-      type: 'history',
-      message: rows
-    }));*/
-  });
 
   ws.on('message', (raw) => {
     try {
@@ -103,7 +80,7 @@ wss.on('connection', (ws, req) => {
             console.error(err);
           }
         });
-        db.all(`SELECT text FROM private_messages WHERE name = ? AND friend_name = ?`, [sender, receiver], (err, rows) => {
+        db.all(`SELECT text FROM private_messages WHERE sender = ? AND receiver = ?`, [sender, receiver], (err, rows) => {
             if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
@@ -116,19 +93,6 @@ wss.on('connection', (ws, req) => {
               text: rows
             }));
           });
-
-            broadcast({
-              type: 'message',
-              message: {
-              id: this.lastID,
-              author,
-              text,
-              created_at: createdAt
-              }
-            });
-        
-          
-        
       }
 ///////////// получение данных логина
       if(data.type === 'login'){
