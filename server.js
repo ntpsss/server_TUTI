@@ -99,19 +99,14 @@ wss.on('connection', (ws, req) => {
               const friendSocket = clientsId.get(row.id);
               friendSocket.send(JSON.stringify({
                 type: 'friend_message_history',
-                messages: rows
+                messages: rows,
+                sender,
+                created_at: createdAt
               }));
+
             });
             
           });
-          db.all(`SELECT * FROM friends`, [], (err, rows) => {
-  if (err) {
-    console.error('Ошибка БД:', err.message);
-    return;
-  }
-
-  console.log(rows);
-})
       }
 ///////////// получение данных логина
       if(data.type === 'login'){
