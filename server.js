@@ -92,25 +92,15 @@ wss.on('connection', (ws, req) => {
           if (err) {
             console.error(err);
           }
-          const friendSocket = clientsId.get(row.id);
-          friendSocket.send(JSON.stringify({
+          const message = {
             type: 'friend_message',
             sender,
             text,
+            receiver,
             created_at: createdAt
-          }));
-
-        });
-        db.all(`SELECT id, sender, text, created_at FROM private_messages WHERE sender = ? AND receiver = ?`, [sender, receiver], (err, rows) => {
-            if (err) {
-              ws.send(JSON.stringify({
-                type: 'error',
-                message: 'Ошибка БД'
-              }));
-              return;
-            }
-    
-            db.get(`SELECT id FROM registration WHERE name = ?`, [receiver], (err, row) => {
+          }
+        
+        db.get(`SELECT id FROM registration WHERE name = ?`, [receiver], (err, row) => {
               if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
@@ -118,8 +108,18 @@ wss.on('connection', (ws, req) => {
               }));
               return;
               }
-              
-              
+              if (!row) {
+                ws.send(JSON.stringify({
+                  type: 'error',
+                  message: 'Пользователь не найден'
+                }));
+                return;
+              }
+              const friendSocket = clientsId.get(row.id);
+              if(friendSocket){
+              friendSocket.send(JSON.stringify(message));
+              }
+              ws.send(JSON.stringify(message));
             });
           });
       }
