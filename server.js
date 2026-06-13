@@ -104,6 +104,14 @@ wss.on('connection', (ws, req) => {
             });
             
           });
+          db.all(`SELECT * FROM friends`, [], (err, rows) => {
+  if (err) {
+    console.error('Ошибка БД:', err.message);
+    return;
+  }
+
+  console.log(rows);
+})
       }
 ///////////// получение данных логина
       if(data.type === 'login'){
