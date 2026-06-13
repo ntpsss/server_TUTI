@@ -100,7 +100,7 @@ wss.on('connection', (ws, req) => {
               friendSocket.send(JSON.stringify({
                 type: 'friend_message_history',
                 messages: {
-                  rows,
+                  text: rows,
                   sender,
                   created_at: createdAt
                 }
