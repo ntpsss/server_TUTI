@@ -66,6 +66,19 @@ wss.on('connection', (ws, req) => {
     try {
       const data = JSON.parse(raw.toString());
 
+      if(data.type === 'friend_message_history'){
+        const sender = String(data.sender || '').trim();
+        const receiver = String(data.receiver || '').trim();
+
+        db.all(`SELECT sender, receiver, text, created_at FROM private_messages WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) ORDER BY created_at ASC`, [sender, receiver, receiver, sender], (err, rows) => {
+          if(err) return;
+          ws.send(JSON.stringify({
+            type: 'friend_message_history',
+            messages: rows
+          }));
+        });
+      }
+
       if (data.type === 'friend_message') {
         const sender = String(data.sender || '').trim();
         const receiver = String(data.receiver || '').trim();
@@ -79,8 +92,16 @@ wss.on('connection', (ws, req) => {
           if (err) {
             console.error(err);
           }
+          const friendSocket = clientsId.get(row.id);
+          friendSocket.send(JSON.stringify({
+            type: 'friend_message',
+            sender,
+            text,
+            created_at: createdAt
+          }));
+
         });
-        db.all(`SELECT sender, text, created_at FROM private_messages WHERE sender = ? AND receiver = ?`, [sender, receiver], (err, rows) => {
+        db.all(`SELECT id, sender, text, created_at FROM private_messages WHERE sender = ? AND receiver = ?`, [sender, receiver], (err, rows) => {
             if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
@@ -88,6 +109,7 @@ wss.on('connection', (ws, req) => {
               }));
               return;
             }
+    
             db.get(`SELECT id FROM registration WHERE name = ?`, [receiver], (err, row) => {
               if (err) {
               ws.send(JSON.stringify({
@@ -96,14 +118,9 @@ wss.on('connection', (ws, req) => {
               }));
               return;
               }
-              const friendSocket = clientsId.get(row.id);
-              friendSocket.send(JSON.stringify({
-                type: 'friend_message_history',
-                messages: rows
-              }));
-
+              
+              
             });
-            
           });
       }
 ///////////// получение данных логина
