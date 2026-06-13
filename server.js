@@ -80,7 +80,7 @@ wss.on('connection', (ws, req) => {
             console.error(err);
           }
         });
-        db.all(`SELECT text FROM private_messages WHERE sender = ? AND receiver = ?`, [sender, receiver], (err, rows) => {
+        db.all(`SELECT sender, text, created_at FROM private_messages WHERE sender = ? AND receiver = ?`, [sender, receiver], (err, rows) => {
             if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
@@ -99,11 +99,7 @@ wss.on('connection', (ws, req) => {
               const friendSocket = clientsId.get(row.id);
               friendSocket.send(JSON.stringify({
                 type: 'friend_message_history',
-                messages: {
-                  text: rows,
-                  sender,
-                  created_at: createdAt
-                }
+                messages: rows
               }));
 
             });
