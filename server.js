@@ -249,14 +249,14 @@ wss.on('connection', (ws, req) => {
               friends: rows
             }));
 
+            friendSocket2.send(JSON.stringify({
+              type: 'friend_list',
+              friends: rows
+            }));
+            
           });
 
-          friendSocket2.send(JSON.stringify({
-            type: 'friend_accept',
-            accept: true,
-            message: `${get_invite_name}`,
-            get_invite_name
-          }));
+          
         });
 
           db.run(`INSERT INTO friends (name, friend_name) VALUES (?, ?)`,
