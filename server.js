@@ -243,12 +243,10 @@ wss.on('connection', (ws, req) => {
               }));
               return;
             }
-
-            ws.send(JSON.stringify({
+            friendSocket2.send(JSON.stringify({
               type: 'friend_list',
               friends: rows
             }));
-
             
 
           });
@@ -260,7 +258,7 @@ wss.on('connection', (ws, req) => {
               }));
               return;
             }
-            friendSocket2.send(JSON.stringify({
+            ws.send(JSON.stringify({
               type: 'friend_list',
               friends: rows
             }));
