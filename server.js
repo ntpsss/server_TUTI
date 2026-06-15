@@ -245,7 +245,7 @@ wss.on('connection', (ws, req) => {
             }
 
             ws.send(JSON.stringify({
-              type: 'friend_accept',
+              type: 'friend_list',
               friends: rows
             }));
 
