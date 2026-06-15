@@ -260,10 +260,10 @@ wss.on('connection', (ws, req) => {
         });
 
           db.run(`INSERT INTO friends (name, friend_name) VALUES (?, ?)`,
-          [sender, namefriend]);
+          [sender, receiver]);
 
           db.run(`INSERT INTO friends (name, friend_name) VALUES (?, ?)`,
-          [namefriend, sender]);
+          [receiver, sender]);
       }
       
       if (data.type === 'friends') {
