@@ -223,7 +223,7 @@ wss.on('connection', (ws, req) => {
 ///////////// получение имени для добавления в друзья
       if(data.type === 'friend_accept'){
         const sender = String(data.sender || '').trim();
-        const namefriend = String(data.currentUserName || '').trim();
+        const receiver = String(data.currentUserName || '').trim();
         let get_invite_name = data.currentUserName;
         db.get(`SELECT id, name FROM registration WHERE name = ?`, [sender], (err, row) => {
           if(err){
@@ -235,7 +235,7 @@ wss.on('connection', (ws, req) => {
           }
           const friendSocket2 = clientsId.get(row.id);
 
-          db.all(`SELECT friend_name FROM friends WHERE name = ?`, [sender], (err, rows) => {
+          db.all(`SELECT friend_name FROM friends WHERE (name = ?) OR (friend_name = ?)`, [sender, receiver], (err, rows) => {
             if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
@@ -253,7 +253,7 @@ wss.on('connection', (ws, req) => {
               type: 'friend_list',
               friends: rows
             }));
-            
+
           });
 
           
