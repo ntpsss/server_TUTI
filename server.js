@@ -235,7 +235,7 @@ wss.on('connection', (ws, req) => {
           }
           const friendSocket2 = clientsId.get(row.id);
 
-          db.all(`SELECT friend_name FROM friends WHERE (name = ?) OR (friend_name = ?)`, [sender, receiver], (err, rows) => {
+          db.all(`SELECT friend_name FROM friends WHERE (name = ?) OR (name = ?)`, [sender, receiver], (err, rows) => {
             if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
