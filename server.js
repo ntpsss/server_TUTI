@@ -187,7 +187,6 @@ wss.on('connection', (ws, req) => {
       //////////// добавление в друзья
       if(data.type === 'name_friend'){
         const nameAdd = String(data.nameAdd || '').trim();
-        //const nameSend = String(data.nameSend || '').trim();
         let send_invite_name = data.send_invite_name;
         if(!nameAdd) return;
         
@@ -235,6 +234,23 @@ wss.on('connection', (ws, req) => {
             return;
           }
           const friendSocket2 = clientsId.get(row.id);
+
+          db.all(`SELECT friend_name FROM friends WHERE name = ?`, [sender], (err, rows) => {
+            if (err) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Ошибка БД'
+              }));
+              return;
+            }
+
+            ws.send(JSON.stringify({
+              type: 'friend_accept',
+              friends: rows
+            }));
+
+          });
+
           friendSocket2.send(JSON.stringify({
             type: 'friend_accept',
             accept: true,
@@ -268,10 +284,7 @@ wss.on('connection', (ws, req) => {
           }));
         });
       }
-      if(data.type === 'friend_history'){
-        const name = String(data.name || '').trim();
-        
-      }
+      
     } catch (error) {
         ws.send(JSON.stringify({
           type: 'error',
