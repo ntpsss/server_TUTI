@@ -235,7 +235,7 @@ wss.on('connection', (ws, req) => {
           }
           const friendSocket2 = clientsId.get(row.id);
 
-          db.all(`SELECT friend_name FROM friends WHERE (name = ?) OR (name = ?)`, [sender, receiver], (err, rows) => {
+          db.all(`SELECT friend_name FROM friends WHERE name = ?`, [sender], (err, rows) => {
             if (err) {
               ws.send(JSON.stringify({
                 type: 'error',
@@ -249,13 +249,22 @@ wss.on('connection', (ws, req) => {
               friends: rows
             }));
 
+            
+
+          });
+          db.all(`SELECT friend_name FROM friends WHERE name = ?`, [receiver], (err, rows) => {
+            if (err) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Ошибка БД'
+              }));
+              return;
+            }
             friendSocket2.send(JSON.stringify({
               type: 'friend_list',
               friends: rows
             }));
-
           });
-
           
         });
 
